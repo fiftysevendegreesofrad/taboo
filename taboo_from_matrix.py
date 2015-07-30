@@ -353,7 +353,7 @@ def pred_stream(proportion,nonzero,transform = lambda x: x,predtransform = lambd
                 
     print
 
-def get_quantiles(data,num_quantiles=10):
+def get_quantiles(data):
     if not data:
         return []
     data.sort()
@@ -404,7 +404,7 @@ if options.histograms0 or options.histograms1 or options.histograms2:
                     count += 1
                     
             # correlation bins end up on vertical axis of csv file, pred on horizontal
-            numpy.savetxt("bihist.csv",bins,delimiter=",")
+            numpy.savetxt(options.outputbase+"_bihist.csv",bins,delimiter=",")
 
             if options.outliers_by_quantile:
                 print "outputting outliers by quantile"
