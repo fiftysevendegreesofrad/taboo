@@ -7,25 +7,39 @@
 import re
 import numpy
 import heapq
-import sys
+import sys,optparse
 from collections import defaultdict
 from bisect import bisect_right
 import bz2
 
-# these affect behaviour
-thresh = 5 # minimum number of times a word must appear to be included in matrix
-prop = 0.11 # maximum proportion of items a word can appear in to be included
-max_size = 20000 # maximum allowable size of matrix (number of words)
+op = optparse.OptionParser("usage: %prog -i CORPUSFILE [options]")
 
-infile = sys.argv[1]
+op.add_option("-i",dest="infile",help="corpus input file, one story per line, plain text or .bz2")
 
-if len(sys.argv)==4:
-    subset = int(sys.argv[2])
-    numslices = int(sys.argv[3])
+op.add_option("--num-tasks",dest="num_tasks",help="number of tasks (for PBS batch job usage)",default=1)
+op.add_option("--task",dest="task",help="number of current task, indexed from 0 (for PBS batch job usage)",default=0)
+op.add_option("--thresh",dest="thresh",help="minumum number of times word can appear for inclusion (filters low frequency words)",default=5)
+op.add_option("--max-prop",dest="prop",help="maximum proportion of stories word can appear in for inclusion (filters high frequency words)",default=0.11)
+op.add_option("--max-size",dest="max_size",help="maximum number of words to include in matrix",default=20000)
+
+(options,args) = op.parse_args()
+if len(args)!=0:
+    op.error("Trailing arguments on command line")
+    
+thresh = int(options.thresh)
+prop = float(options.prop)
+max_size = int(options.max_size)
+subset = int(options.task)
+numslices = int(options.num_tasks)
+infile = options.infile
+
+if infile is None:
+    op.error("No input file supplied")
+
+assert subset<numslices
+
+if numslices!=1:
     print "running subset %d of %d"%(subset,numslices)
-else:
-    subset = 0
-    numslices = 1
 
 def get_lines():
     if infile[-4:].lower()==".bz2":
@@ -89,7 +103,7 @@ print
 
 #print "saving..."
 outbase = infile+"_%d_of_%d_"%(subset,numslices)
-numpy.savez_compressed("%s_words"%outbase,
+numpy.savez_compressed("%s_combined"%outbase,
                        index=allwords,
                        numstories=numstories,
                        matrix=xcorrmatrix)
