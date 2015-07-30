@@ -101,7 +101,7 @@ for progress,line in enumerate(get_lines()):
 print
 
 
-#print "saving..."
+print "saving..."
 outbase = infile+"_%d_of_%d_"%(subset,numslices)
 numpy.savez_compressed("%s_combined"%outbase,
                        index=allwords,
